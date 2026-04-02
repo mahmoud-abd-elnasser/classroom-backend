@@ -7,31 +7,46 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
     try {
-        const {search, department, page = 1, limit = 10} = req.query
-        const currentPage = Math.max(1, +page)
-        const limitPerPage = Math.max(1, +limit)
+        const {search, department, page = '1', limit = '10'} = req.query;
+
+        const parsePositiveInt = (value: unknown, fallback: number, max?: number) => {
+            const raw = Array.isArray(value) ? value[0] : value;
+            const parsed = Number.parseInt(String(raw), 10);
+            if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+            return max ? Math.min(parsed, max) : parsed;
+        };
+
+        const parseQueryText = (value: unknown) => {
+            const raw = Array.isArray(value) ? value[0] : value;
+            return typeof raw === 'string' && raw.trim() ? raw.trim() : undefined;
+        };
+
+        const currentPage = parsePositiveInt(page, 1);
+        const limitPerPage = parsePositiveInt(limit, 10, 100);
+        const searchText = parseQueryText(search);
+        const departmentText = parseQueryText(department);
 
         const offset = (currentPage - 1) * limitPerPage
         const filterConditions = []
 
-        if (search) {
+        if (searchText) {
             filterConditions.push(
                 or(
-                    ilike(subjects.name, `%${search}%`),
-                    ilike(subjects.code, `%${search}%`)
+                    ilike(subjects.name, `%${searchText}%`),
+                    ilike(subjects.code, `%${searchText}%`)
                 )
             )
         }
 
-        if (department) {
+        if (departmentText) {
             filterConditions.push(
-                ilike(departments.name, `%${department}%`)
+                ilike(departments.name, `%${departmentText}%`)
             )
         }
 
         const whereClause = filterConditions.length > 0 ? and(...filterConditions) : undefined;
         const countResult = await db.select({count: sql<number>`count(*)`}).from(subjects).leftJoin(departments, eq(subjects.departmentId, departments.id)).where(whereClause)
-        const totalCount = countResult[0]?.count ?? 0;
+        const totalCount = Number(countResult[0]?.count ?? 0)
         const subjectsList = await db.select({
             ...getTableColumns(subjects),
             department: {...getTableColumns(departments)}
