@@ -10,17 +10,17 @@ const securityMiddleware = async (req: Request, res: Response, next: NextFunctio
         let message: string
         switch (role) {
             case 'admin':
-                limit:20;
-                message: 'Admin request limit exeeded (20 requests per minute)'
+                limit = 20;
+                message = 'Admin request limit exceeded (20 requests per minute)'
                 break
             case 'teacher':
             case 'student':
-                limit:10;
-                message: 'User request limit exeeded (10 requests per minute)'
+                limit = 10;
+                message = 'User request limit exceeded (10 requests per minute)'
                 break
             default:
-                limit:5;
-                message: 'Guest request limit exeeded (5 requests per minute)'
+                limit = 5;
+                message = 'Guest request limit exceeded (5 requests per minute)'
                 break
         }
         const client = aj.withRule(
@@ -47,7 +47,7 @@ const securityMiddleware = async (req: Request, res: Response, next: NextFunctio
             return res.status(403).json({error: 'Forbidden', message: "Request blocked by security policy."})
         }
         if (decision.isDenied() && decision.reason.isRateLimit()) {
-            return res.status(403).json({error: 'Too many requests', message})
+            return res.status(429).json({error: 'Too many requests', message})
         }
         next()
     } catch (e) {
