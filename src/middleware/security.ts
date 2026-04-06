@@ -41,7 +41,7 @@ const securityMiddleware = async (req: Request, res: Response, next: NextFunctio
         const decision = await client.protect(arcjetRequest)
 
         if (decision.isDenied() && decision.reason.isBot()) {
-            return res.status(403).json({error: 'Forbidden', message: "Automated request aren't allowed."})
+            return res.status(403).json({error: 'Forbidden', message: "Automated requests aren't allowed."})
         }
         if (decision.isDenied() && decision.reason.isShield()) {
             return res.status(403).json({error: 'Forbidden', message: "Request blocked by security policy."})
