@@ -10,8 +10,16 @@ if (!frontendUrl) {
     throw new Error('FRONTEND_URL is not defined');
   }
 
+const allowedOrigins = [frontendUrl, frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : `${frontendUrl}/`];
+
 app.use(cors({
-  origin: frontendUrl,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));

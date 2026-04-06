@@ -47,12 +47,24 @@ router.get('/', async (req, res) => {
         const whereClause = filterConditions.length > 0 ? and(...filterConditions) : undefined;
         const countResult = await db.select({count: sql<number>`count(*)`}).from(subjects).leftJoin(departments, eq(subjects.departmentId, departments.id)).where(whereClause)
         const totalCount = Number(countResult[0]?.count ?? 0)
-        const subjectsList = await db.select({
-            ...getTableColumns(subjects),
-            department: {...getTableColumns(departments)}
-        }).from(subjects).leftJoin(departments, eq(subjects.departmentId, departments.id)).where(whereClause).orderBy(desc(subjects.createdAt)).limit(limitPerPage).offset(offset)
+
+        const subjectsList = await db.query.subjects.findMany({
+            with: {
+                department: true
+            },
+            where: whereClause,
+            orderBy: desc(subjects.createdAt),
+            limit: limitPerPage,
+            offset: offset
+        })
+
+        const data = subjectsList.map(({ department, ...subject }) => ({
+            ...subject,
+            department
+        }))
+
         res.status(200).json({
-            subjects: subjectsList,
+            data,
             pagination: {
                 page: currentPage,
                 limit: limitPerPage,
