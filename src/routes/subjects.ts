@@ -48,10 +48,9 @@ router.get('/', async (req, res) => {
         const countResult = await db.select({count: sql<number>`count(*)`}).from(subjects).leftJoin(departments, eq(subjects.departmentId, departments.id)).where(whereClause)
         const totalCount = Number(countResult[0]?.count ?? 0)
 
-        // @ts-ignore
         const subjectsList = await db.query.subjects.findMany({
             with: {
-                departments: true
+                department: true
             },
             where: whereClause,
             orderBy: desc(subjects.createdAt),
@@ -59,9 +58,9 @@ router.get('/', async (req, res) => {
             offset: offset
         })
 
-        const data = subjectsList.map(({ departments, ...subject }) => ({
+        const data = subjectsList.map(({ department, ...subject }) => ({
             ...subject,
-            department: departments
+            department
         }))
 
         res.status(200).json({

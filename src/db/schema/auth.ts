@@ -1,5 +1,5 @@
-import { pgTable, text, timestamp, boolean, pgEnum, index } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { pgTable, text, timestamp, boolean, pgEnum, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
 
 export const roleEnum = pgEnum("role", ["student", "teacher", "admin"]);
 
@@ -11,13 +11,15 @@ const timestamps = {
 export const user = pgTable("user", {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    email: text("email").notNull().unique(),
+    email: text("email").notNull(),
     emailVerified: boolean("email_verified").notNull(),
     image: text("image"),
     role: roleEnum("role").default("student").notNull(),
     imageCldPubId: text("image_cld_pub_id"),
     ...timestamps
-});
+}, (table) => [
+    uniqueIndex("user_email_unique_idx").on(sql`lower(${table.email})`),
+]);
 
 export const session = pgTable("session", {
     id: text("id").primaryKey(),
@@ -48,6 +50,7 @@ export const account = pgTable("account", {
     updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
 }, (table) => [
     index("account_user_id_idx").on(table.userId),
+    uniqueIndex("account_provider_account_uidx").on(table.providerId, table.accountId),
 ]);
 
 export const verification = pgTable("verification", {

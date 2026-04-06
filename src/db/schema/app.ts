@@ -24,7 +24,7 @@ export const classStatusEnum = pgEnum("class_status", ["active", "inactive", "ar
 
 export const classes = pgTable("classes", {
     id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
-    subjectId: integer('subject_id').notNull().references(() => subjects.id, {onDelete: 'cascade'}),
+    subjectId: integer('subject_id').notNull().references(() => subjects.id, {onDelete: 'restrict'}),
     teacherId: text('teacher_id').notNull().references(() => user.id, {onDelete: 'restrict'}),
     inviteCode: varchar('invite_code', {length: 50}).notNull().unique(),
     name: varchar('name', {length: 255}).notNull(),
@@ -44,7 +44,7 @@ export const classes = pgTable("classes", {
 export const enrollments = pgTable("enrollments", {
     id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
     studentId: text('student_id').notNull().references(() => user.id, {onDelete: 'cascade'}),
-    classId: integer('class_id').notNull().references(() => classes.id, {onDelete: 'cascade'}),
+    classId: integer('class_id').notNull().references(() => classes.id, {onDelete: 'restrict'}),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
 }, (table) => [
