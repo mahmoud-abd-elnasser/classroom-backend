@@ -1,6 +1,6 @@
 import {integer, pgTable, timestamp, varchar, pgEnum, text, index, unique, jsonb} from "drizzle-orm/pg-core";
 import {relations} from "drizzle-orm";
-import {user} from "./auth";
+import {user} from "./auth.js";
 
 export const departments = pgTable('departments', {
     id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
